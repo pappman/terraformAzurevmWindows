@@ -1,0 +1,60 @@
+### Rodar terraform
+
+#### Logando no portal da Azure:
+
+```shell
+$ az login
+```
+
+#### Após logar, indicar qual subscrição será usada. Vou colocar um exemplo da subscrição gratuita:
+
+```shell
+$ az account list -o table
+$ az account set --subscription "Avaliação Gratuita"
+```
+
+No output do comando anterior, copie o id da subscrição e export como uma variável de ambiente:
+
+```shell
+$ export SUBSCRIPTION_ID=XXXXXXXXXXX
+```
+
+#### Criando um application no AD da Azure:
+
+```shell
+$ az ad sp create-for-rbac --role="Contributor" --scopes="/subscriptions/${SUBSCRIPTION_ID}"
+```
+
+Após ter criado o application no AD, copie e cole o output do comando, pois será usado nas variáveis do terraform. O output é um json, podendo armazenar em um key vault por exemplo. O output conterá os dados a serem colocados no arquivo terraform.tfvars.
+
+#### Inicializando o terraform, gerará um diretório .terraform que conterá os recursos necessários para começar a usar o terraform com as receitas feitas. 
+
+Crie um arquivo tfvars para que o terraform encontra suas variáveis:
+
+```yaml
+$ vim terraform.tfvars
+subscription_id = "SUBSCRIPTION_ID"
+client_id       = "CLIENT_ID"
+client_secret   = "CLIENT_SECRET"
+tenant_id       = "TENTANT_ID"
+```
+
+Feito isso, colocar o path do arquivo terraform.tfvars no .gitignore.
+
+Precisa criar um storage account na Azure e nesse storage account criar um container blob, pegar o valor da access_key que estiver disponível, key 1 ou key 2.
+
+```shell
+$ export key_value=VALOR_DA_ACCESS_KEY_DO_STORAGE_ACCOUNT
+$ terraform init -backend-config=access_key=$key_value
+```
+
+#### Terraform plan, coloca todo output da receita em um arquivo
+```shell
+$ terraform plan -out jmetervm.plan
+```
+
+#### Terraform apply para aplicar de fato a automação
+```shell
+$ terraform apply jmetervm.plan
+```
+
